@@ -3,6 +3,116 @@
  * API Router for 网络规划师备考 - 每日练习系统
  */
 
+// Cron 定时触发：调用 Claude API 生成扩展资料
+export async function scheduled(event, env, ctx) {
+  const today = new Date().toISOString().split('T')[0];
+  const db = env.DB;
+
+  // 获取过去24小时内的答题和笔记数据
+  const { results: history } = await db.prepare(`
+    SELECT h.*, q.question_text, q.knowledge_point, q.answer, q.explanation
+    FROM question_history h
+    JOIN questions q ON h.question_id = q.id
+    WHERE h.answered_at >= datetime('now', '-1 day')
+    ORDER BY h.answered_at DESC
+  `).all();
+
+  const { results: notes } = await db.prepare(`
+    SELECT n.*, q.question_text, q.knowledge_point, q.explanation
+    FROM question_notes n
+    JOIN questions q ON n.question_id = q.id
+    WHERE n.created_at >= datetime('now', '-1 day')
+    ORDER BY n.created_at DESC
+  `).all();
+
+  const wrongQuestions = history.filter(h => !h.is_correct);
+  const needExtNotes = notes.filter(n => n.note_type === 'confused' || n.note_type === 'need_extended');
+
+  //组合分析数据
+  const analysisData = {
+    date: today,
+    wrongCount: wrongQuestions.length,
+    wrongQuestions: wrongQuestions.map(w => ({
+      knowledgePoint: w.knowledge_point,
+      question: w.question_text?.substring(0, 200),
+      userAnswer: w.user_answer,
+      correctAnswer: w.answer,
+      explanation: w.explanation
+    })),
+    notesCount: needExtNotes.length,
+    notes: needExtNotes.map(n => ({
+      knowledgePoint: n.knowledge_point,
+      noteType: n.note_type,
+      content: n.note_content
+    }))
+  };
+
+  // 调用 Claude API 生成扩展资料
+  const prompt = `你是网络规划设计师备考助手。请根据用户过去24小时的学习数据，生成个性化扩展资料。
+
+## 学习数据
+${JSON.stringify(analysisData, null, 2)}
+
+## 输出要求
+请生成一份扩展学习资料，JSON格式：
+{
+  "summary": "今日学习总结（50字内）",
+  "weaknesses": ["需要补强的知识点1", "需要补强的知识点2"],
+  "items": [
+    {
+      "knowledgePoint": "知识点名称",
+      "coreExplanation": "核心原理解释（100字内）",
+      "memoryTips": ["记忆口诀/技巧1", "记忆口诀/技巧2"],
+      "commonMistakes": ["常见误区1", "常见误区2"],
+      "practiceSuggestion": "练习建议（50字内）"
+    }
+  ],
+  "tomorrowFocus": "明日学习重点（30字内）"
+}`;
+
+  try {
+    const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': env.CLAUDE_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-20250501',
+        max_tokens: 2000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const claudeData = await claudeRes.json();
+    let extensionContent;
+
+    if (claudeData.content) {
+      const text = claudeData.content[0]?.text || '';
+      // 尝试解析 JSON
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      extensionContent = jsonMatch ? JSON.parse(jsonMatch[0]) : { summary: text };
+    } else {
+      extensionContent = { summary: '数据解析中...' };
+    }
+
+    // 保存到数据库
+    await db.prepare(`
+      INSERT OR REPLACE INTO daily_extensions (date, content, source_notes)
+      VALUES (?, ?, ?)
+    `).bind(today, JSON.stringify(extensionContent), JSON.stringify({
+      historyCount: history.length,
+      notesCount: notes.length
+    })).run();
+
+    console.log(`[${today}] 扩展资料生成成功`);
+  } catch (err) {
+    console.error('生成扩展资料失败:', err);
+  }
+}
+
 // 知识点速记表
 const knowledgeCards = {
   'TCP三次握手': {

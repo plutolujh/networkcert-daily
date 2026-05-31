@@ -12,5 +12,13 @@
       "database_name": "networkcert-daily",
       "database_id": "d932e501-8d69-423e-a6a8-86b9f2b3ae74"
     }
+  ],
+  "triggers": {
+    "crons": ["0 4,16 * * *"]
+  },
+  "secrets": [
+    {
+      "name": "CLAUDE_API_KEY"
+    }
   ]
 }
