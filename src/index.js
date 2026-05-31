@@ -413,7 +413,7 @@ export default {
 
         // 获取过去24小时内标记为需要扩展的笔记
         const { results: notes } = await db.prepare(`
-          SELECT n.*, q.knowledge_point, q.content as question_content, q.explanation
+          SELECT n.*, q.tags, q.content as question_content, q.explanation
           FROM question_notes n
           JOIN questions q ON n.question_id = q.id
           WHERE n.note_type IN ('confused', 'need_extended')
@@ -431,7 +431,7 @@ export default {
         // 按知识点分组生成扩展资料
         const knowledgeGroups = {};
         for (const note of notes) {
-          const kp = note.knowledge_point || '其他';
+          const kp = note.tags || '其他';
           if (!knowledgeGroups[kp]) {
             knowledgeGroups[kp] = [];
           }
