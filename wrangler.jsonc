@@ -3,7 +3,9 @@
   "name": "networkcert-api",
   "main": "src/index.js",
   "compatibility_date": "2024-01-01",
-  "assets": ".",
+  "assets": {
+    "directory": "."
+  },
   "d1_databases": [
     {
       "binding": "DB",
