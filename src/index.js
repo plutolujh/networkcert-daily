@@ -10,7 +10,7 @@ export async function scheduled(event, env, ctx) {
 
   // 获取过去24小时内的答题和笔记数据
   const { results: history } = await db.prepare(`
-    SELECT h.*, q.question_text, q.knowledge_point, q.answer, q.explanation
+    SELECT h.*, q.content as question_text, q.tags, q.answer, q.explanation
     FROM question_history h
     JOIN questions q ON h.question_id = q.id
     WHERE h.answered_at >= datetime('now', '-1 day')
@@ -18,7 +18,7 @@ export async function scheduled(event, env, ctx) {
   `).all();
 
   const { results: notes } = await db.prepare(`
-    SELECT n.*, q.question_text, q.knowledge_point, q.explanation
+    SELECT n.*, q.content as question_text, q.tags, q.explanation
     FROM question_notes n
     JOIN questions q ON n.question_id = q.id
     WHERE n.created_at >= datetime('now', '-1 day')
@@ -28,12 +28,12 @@ export async function scheduled(event, env, ctx) {
   const wrongQuestions = history.filter(h => !h.is_correct);
   const needExtNotes = notes.filter(n => n.note_type === 'confused' || n.note_type === 'need_extended');
 
-  //组合分析数据
+  // 组合分析数据
   const analysisData = {
     date: today,
     wrongCount: wrongQuestions.length,
     wrongQuestions: wrongQuestions.map(w => ({
-      knowledgePoint: w.knowledge_point,
+      knowledgePoint: w.tags,
       question: w.question_text?.substring(0, 200),
       userAnswer: w.user_answer,
       correctAnswer: w.answer,
@@ -41,7 +41,7 @@ export async function scheduled(event, env, ctx) {
     })),
     notesCount: needExtNotes.length,
     notes: needExtNotes.map(n => ({
-      knowledgePoint: n.knowledge_point,
+      knowledgePoint: n.tags,
       noteType: n.note_type,
       content: n.note_content
     }))
