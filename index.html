@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>网络规划师备考 - 每日一题</title>
+  <link rel="manifest" href="/manifest.json">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+      --success: #22c55e;
+      --warning: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 0;
+      min-height: 100vh;
+    }
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 1.5rem 1rem;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header h1 { font-size: 1.25rem; font-weight: 600; }
+    header .date { font-size: 0.875rem; opacity: 0.9; margin-top: 0.25rem; }
+    main { max-width: 680px; margin: 0 auto; padding: 1rem; }
+    .section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin: 1.5rem 0 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border);
+    }
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 1px solid var(--border);
+    }
+    .card h2 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: var(--primary);
+    }
+    .tag {
+      display: inline-block;
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      margin-right: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+    .tag.danger { background: #fee2e2; color: #dc2626; }
+    .tag.warning { background: #fef3c7; color: #d97706; }
+    .tag.success { background: #d1fae5; color: #059669; }
+    ul { padding-left: 1.25rem; }
+    li { margin-bottom: 0.5rem; }
+    .progress-bar {
+      background: var(--border);
+      border-radius: 8px;
+      height: 8px;
+      margin-top: 1rem;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      background: var(--primary);
+      height: 100%;
+      border-radius: 8px;
+      transition: width 0.3s ease;
+    }
+    .footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+    .btn {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      margin-top: 1rem;
+    }
+    .knowledge-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+    .knowledge-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .knowledge-item h3 {
+      font-size: 0.875rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+    .knowledge-item p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📚 网络规划师备考</h1>
+    <div class="date" id="currentDate"></div>
+  </header>
+
+  <main>
+    <!-- 今日概览 -->
+    <div class="card">
+      <h2>📋 今日学习任务</h2>
+      <div id="dailyTasks"></div>
+    </div>
+
+    <!-- 综合知识 -->
+    <div class="section-title">🎯 综合知识 - 今日考点</div>
+    <div class="card">
+      <div id="knowledgePoints"></div>
+    </div>
+
+    <!-- 案例分析 -->
+    <div class="section-title">📝 案例分析 - 答题框架</div>
+    <div class="card" id="caseStudy"></div>
+
+    <!-- 论文写作 -->
+    <div class="section-title">✍️ 论文写作 - 今日素材</div>
+    <div class="card" id="essayWriting"></div>
+
+    <!-- 掌握进度 -->
+    <div class="section-title">📊 掌握进度</div>
+    <div class="card">
+      <div id="progressTracker"></div>
+    </div>
+
+    <div class="footer">
+      <p>距离考试还有 <span id="daysLeft" style="font-weight: bold; color: var(--primary);">--</span> 天</p>
+      <a href="/prev" class="btn" style="background: var(--text-secondary); margin-right: 0.5rem;">← 前一天</a>
+      <a href="/next" class="btn">后一天 →</a>
+    </div>
+  </main>
+
+  <script>
+    // 获取当前日期
+    const today = new Date();
+    document.getElementById('currentDate').textContent = today.toLocaleDateString('zh-CN', {
+      year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+    });
+
+    // 考试日期 (每年11月第二个星期六)
+    const examDate = new Date('2026-11-14');
+    const daysLeft = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
+    document.getElementById('daysLeft').textContent = daysLeft;
+
+    // 每日数据 (从JSON加载)
+    const dailyData = {
+      date: today.toISOString().split('T')[0],
+      tasks: [
+        { done: false, text: '完成综合知识30题练习' },
+        { done: false, text: '案例分析第一题作答' },
+        { done: false, text: '复习昨日错题' }
+      ],
+      knowledge: [
+        {
+          title: 'TCP三次握手',
+          tags: ['协议', '高频'],
+          points: [
+            '第一次：SYN=1, seq=x → SYN_SENT',
+            '第二次：SYN=1, ACK=1, seq=y, ack=x+1 → SYN_RCVD',
+            '第三次：ACK=1, seq=x+1, ack=y+1 → ESTABLISHED'
+          ]
+        },
+        {
+          title: 'ACL工作原理',
+          tags: ['设备配置', '高频'],
+          points: [
+            '按规则顺序逐条匹配',
+            '匹配即执行（permit/deny）',
+            '未匹配默认deny'
+          ]
+        },
+        {
+          title: 'VLAN划分方式',
+          tags: ['交换机', '常考'],
+          points: [
+            '基于端口划分（最常用）',
+            '基于MAC地址划分',
+            '基于协议划分',
+            '基于IP子网划分'
+          ]
+        }
+      ],
+      caseStudy: {
+        title: '今日案例：第一题 - 网络系统规划设计与优化',
+        framework: [
+          '【问题1】优化措施：SDN控制器、无线补盲、多出口负载均衡、VLAN标准化',
+          '【问题2】SDN控制器作用：集中管控、流量调度、故障恢复、自动化运维',
+          '【问题3】无线部署因素：覆盖范围、接入容量、信道规划、终端兼容',
+          '【问题4】出口负载均衡：策略路由，教育网地址段走教育网出口'
+        ]
+      },
+      essay: {
+        title: '今日论文方向：SDN在企业网络中的应用',
+        outline: [
+          '摘要（300字）：项目背景 + 我的角色 + 解决方案 + 成效',
+          '正文结构：背景400字 → 需求300字 → 方案800字 → 效果400字',
+          '结尾（300字）：经验教训 + 改进方向'
+        ],
+        template: '20XX年X月，我作为项目经理主持了XX单位网络系统升级项目。针对...等问题，设计了基于SDN的...方案。实施后，XX指标提升XX%，获得了用户高度认可。'
+      },
+      progress: {
+        comprehensive: 40,
+        caseAnalysis: 30,
+        essay: 20
+      }
+    };
+
+    // 渲染今日任务
+    const tasksHtml = dailyData.tasks.map((t, i) => `
+      <label style="display: flex; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border); cursor: pointer;">
+        <input type="checkbox" id="task${i}" ${t.done ? 'checked' : ''} style="width: 20px; height: 20px; margin-right: 0.75rem;">
+        <span style="${t.done ? 'text-decoration: line-through; color: var(--text-secondary);' : ''}">${t.text}</span>
+      </label>
+    `).join('');
+    document.getElementById('dailyTasks').innerHTML = tasksHtml;
+
+    // 渲染知识点
+    const knowledgeHtml = dailyData.knowledge.map(k => {
+      const tagsHtml = k.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+      const pointsHtml = k.points.map(p => `<li>${p}</li>`).join('');
+      return `
+        <div style="margin-bottom: 1.25rem;">
+          <h3 style="margin-bottom: 0.5rem;">${tagsHtml}</h3>
+          <strong>${k.title}</strong>
+          <ul style="margin-top: 0.5rem;">${pointsHtml}</ul>
+        </div>
+      `;
+    }).join('');
+    document.getElementById('knowledgePoints').innerHTML = knowledgeHtml;
+
+    // 渲染案例分析
+    const caseHtml = `
+      <h3 style="color: var(--primary); margin-bottom: 0.75rem;">${dailyData.caseStudy.title}</h3>
+      <ul style="padding-left: 1.25rem;">
+        ${dailyData.caseStudy.framework.map(f => `<li style="margin-bottom: 0.75rem; line-height: 1.5;">${f}</li>`).join('')}
+      </ul>
+    `;
+    document.getElementById('caseStudy').innerHTML = caseHtml;
+
+    // 渲染论文
+    const essayHtml = `
+      <h3 style="color: var(--primary); margin-bottom: 0.75rem;">${dailyData.essay.title}</h3>
+      <div style="margin-bottom: 1rem;">
+        <strong>写作框架：</strong>
+        <ul style="padding-left: 1.25rem; margin-top: 0.5rem;">
+          ${dailyData.essay.outline.map(o => `<li style="margin-bottom: 0.5rem;">${o}</li>`).join('')}
+        </ul>
+      </div>
+      <div style="background: #f1f5f9; padding: 1rem; border-radius: 8px; font-size: 0.875rem;">
+        <strong>摘要模板：</strong>
+        <p style="margin-top: 0.5rem; color: var(--text-secondary);">${dailyData.essay.template}</p>
+      </div>
+    `;
+    document.getElementById('essayWriting').innerHTML = essayHtml;
+
+    // 渲染进度
+    const progressHtml = `
+      <div style="margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+          <span>综合知识</span>
+          <span>${dailyData.progress.comprehensive}%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-bar-fill" style="width: ${dailyData.progress.comprehensive}%"></div></div>
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+          <span>案例分析</span>
+          <span>${dailyData.progress.caseAnalysis}%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-bar-fill" style="width: ${dailyData.progress.caseAnalysis}%"></div></div>
+      </div>
+      <div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+          <span>论文写作</span>
+          <span>${dailyData.progress.essay}%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-bar-fill" style="width: ${dailyData.progress.essay}%"></div></div>
+      </div>
+    `;
+    document.getElementById('progressTracker').innerHTML = progressHtml;
+  </script>
+</body>
+</html>
