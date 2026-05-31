@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "networkcert-api",
+  "name": "networkcert-daily",
   "main": "src/index.js",
   "compatibility_date": "2024-01-01",
   "assets": {
