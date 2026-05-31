@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
+  <meta name="theme-color" content="#2563eb">
+  <title>网络规划设计师 - 考试大纲</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --error: #dc2626;
+      --core: #7c3aed;
+      --high: #059669;
+      --low: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 1.25rem 1rem;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header h1 { font-size: 1.2rem; font-weight: 600; }
+    header .subtitle { font-size: 0.85rem; opacity: 0.9; margin-top: 0.25rem; }
+
+    main { max-width: 720px; margin: 0 auto; padding: 1rem; }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 1px solid var(--border);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    .tag-core { background: #ede9fe; color: #7c3aed; }
+    .tag-high { background: #d1fae5; color: #059669; }
+    .tag-low { background: #f3f4f6; color: #6b7280; }
+    .tag-error { background: #fee2e2; color: #dc2626; }
+
+    .chapter {
+      margin-bottom: 1.5rem;
+    }
+    .chapter-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+    }
+    .chapter-title .icon { font-size: 1.2rem; }
+
+    .topic {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 0.875rem;
+      margin-bottom: 0.75rem;
+      border-left: 3px solid var(--primary);
+    }
+    .topic-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+    .topic-points {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      padding-left: 1rem;
+    }
+    .topic-points li {
+      margin-bottom: 0.35rem;
+      position: relative;
+    }
+    .topic-points li::before {
+      content: "•";
+      position: absolute;
+      left: -0.75rem;
+      color: var(--primary);
+    }
+
+    .stat-bar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .stat-item {
+      flex: 1;
+      min-width: 100px;
+      text-align: center;
+      padding: 0.75rem;
+      background: #f0f7ff;
+      border-radius: 8px;
+    }
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--primary);
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .error-list {
+      background: #fef2f2;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .error-item {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.9rem;
+    }
+    .error-item:last-child { margin-bottom: 0; }
+    .error-icon { color: #dc2626; }
+
+    .footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+    .version-info {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+    .version-info p {
+      font-size: 0.75rem;
+      margin: 0.25rem 0;
+    }
+    .changelog {
+      font-size: 0.7rem !important;
+      opacity: 0.8;
+    }
+
+    @media (max-width: 480px) {
+      .stat-item { min-width: 80px; padding: 0.5rem; }
+      .stat-value { font-size: 1.25rem; }
+      .topic { padding: 0.75rem; }
+      .topic-points { padding-left: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📚 网络规划设计师 - 考试大纲</h1>
+    <div class="subtitle">综合知识（上午卷）· 高频考点汇总</div>
+  </header>
+
+  <main>
+    <!-- 考试占比统计 -->
+    <div class="card">
+      <div class="stat-bar">
+        <div class="stat-item">
+          <div class="stat-value">60%+</div>
+          <div class="stat-label">核心必考模块</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">25-30%</div>
+          <div class="stat-label">高频模块</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">10-15%</div>
+          <div class="stat-label">低频必考</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 一、核心必考模块 -->
+    <div class="card">
+      <div class="section-title">
+        <span>🔥</span> 一、核心必考模块（占比60%+，真题高频重复）
+        <span class="tag tag-core">重点</span>
+      </div>
+
+      <!-- 1. 路由技术 -->
+      <div class="chapter">
+        <div class="chapter-title">
+          <span class="icon">🔀</span> 1. 路由技术（重中之重，每年必考）
+        </div>
+        <div class="topic">
+          <div class="topic-title">OSPF协议</div>
+          <ul class="topic-points">
+            <li>邻居建立必备条件：版本、Area ID、认证模式、密码、Hello/Dead Time、掩码、Option字段N/E位一致</li>
+            <li>故障原因：接口掩码不一致、Hello间隔不同</li>
+            <li>DR/BDR选举机制</li>
+            <li>SPF算法应用</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <div class="topic-title">BGP协议</div>
+          <ul class="topic-points">
+            <li>路由黑洞成因及解决方法：配置next-hop-local、MPLS LSP隧道</li>
+            <li>路由传递规则：非最优路由不传递</li>
+            <li>邻居关系手工建立</li>
+            <li>Keepalive周期（缺省值，邻居失效判断时间）</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <div class="topic-title">MPLS协议</div>
+          <ul class="topic-points">
+            <li>标签位置：IP首部与帧首部之间</li>
+            <li>转发机制：不分析每一跳IP报文头</li>
+            <li>LSP隧道：解决路由黑洞</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <div class="topic-title">路由算法</div>
+          <ul class="topic-points">
+            <li>链路状态：Dijkstra算法</li>
+            <li>距离向量：Bellman-Ford算法</li>
+            <li>生成树算法：破环机制</li>
+            <li>最小生成树：Kruskal算法（权重相同场景可能生成不同结构）</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 2. 网络基础协议 -->
+      <div class="chapter">
+        <div class="chapter-title">
+          <span class="icon">🌐</span> 2. 网络基础协议（必考，覆盖广）
+        </div>
+        <div class="topic">
+          <div class="topic-title">IEEE 802系列</div>
+          <ul class="topic-points">
+            <li>802.11（WLAN）MAC层：CSMA/CA、帧间隔SIFS/PIFS/DIFS、PMF</li>
+            <li>802.3（以太网）：CSMA/CD、帧结构、VLAN 802.1Q、Trunk接口处理逻辑</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <div class="topic-title">TCP/IP协议栈</div>
+          <ul class="topic-points">
+            <li>IPv6链路本地地址FE80::/10，不可路由，路由器接收后丢弃</li>
+            <li>TCP三次握手状态：SYN_SENT、SYN_RCVD、ESTABLISHED</li>
+            <li>FIN扫描：开放端口无响应，关闭端口回复RST</li>
+            <li>TCP最大数据长度：1518-18-40=1460B</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <div class="topic-title">应用层协议</div>
+          <ul class="topic-points">
+            <li>HTTP：GET/POST请求限制1024Kb</li>
+            <li>NETCONF：XML编码</li>
+            <li>DNS：NS记录含义</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 3. 网络性能计算 -->
+      <div class="chapter">
+        <div class="chapter-title">
+          <span class="icon">📊</span> 3. 网络性能计算（每年1-3题，计算题必考）
+        </div>
+        <div class="topic">
+          <div class="topic-title">信道速率</div>
+          <ul class="topic-points">
+            <li>公式：R=B·log₂N（B为码元速率，N为调制等级）</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <div class="topic-title">传输距离</div>
+          <ul class="topic-points">
+            <li>双绞线/光纤衰减计算：距离=允许衰减÷每km衰减</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <div class="topic-title">令牌环</div>
+          <ul class="topic-points">
+            <li>数据传输速率×传播时延（传播时延=环长÷光速）</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <div class="topic-title">流量与CRC</div>
+          <ul class="topic-points">
+            <li>流量强度：>1时，分组排队延迟趋近于无穷大</li>
+            <li>CRC检错：生成多项式转换（如G(x)=x³+x²+1对应1101）</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 4. 网络安全 -->
+      <div class="chapter">
+        <div class="chapter-title">
+          <span class="icon">🔒</span> 4. 网络安全（高频，易混淆）
+        </div>
+        <div class="topic">
+          <div class="topic-title">加密与认证</div>
+          <ul class="topic-points">
+            <li>国密SM9：用户私钥由KGC生成</li>
+            <li>FIDO UAF：私钥存储在用户设备</li>
+            <li>IPSec组成：SPI、IP目的地址、AH/ESP；IKE负责密钥交换，支持IPv4/IPv6</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <div class="topic-title">攻击与防御</div>
+          <ul class="topic-points">
+            <li>ARP攻击：抓包特征-大量Who has请求</li>
+            <li>重放攻击：时间戳防御</li>
+            <li>FIN端口扫描与普通扫描区分</li>
+            <li>防御技术：堡垒主机、蜜罐部署场景</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 二、高频模块 -->
+    <div class="card">
+      <div class="section-title">
+        <span>📈</span> 二、高频模块（占比25%-30%，真题常考）
+        <span class="tag tag-high">重要</span>
+      </div>
+
+      <div class="chapter">
+        <div class="chapter-title">
+          <span class="icon">💾</span> 1. 存储与虚拟化技术
+        </div>
+        <div class="topic">
+          <div class="topic-title">RAID技术</div>
+          <ul class="topic-points">
+            <li>RAID5与RAID6对比：RAID5单校验，RAID6双校验</li>
+            <li>RAID6写入效率更低、磁盘利用率更低、安全性更高</li>
+            <li>RAID0读写性能最高，RAID0不适合数据库</li>
+            <li>RAID5与RAID6均有写惩罚</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <div class="topic-title">虚拟化技术</div>
+          <ul class="topic-points">
+            <li>服务器虚拟化：1台物理机虚拟多台VM（云计算关联）</li>
+            <li>NFV部署环境：不含用户终端</li>
+            <li>VXLAN配置方式：虚拟化软件、SDN控制器</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <div class="topic-title">数据库特性</div>
+          <ul class="topic-points">
+            <li>原子性：违反场景-崩溃前日志未持久化</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="chapter">
+        <div class="chapter-title">
+          <span class="icon">🔧</span> 2. 网络设备与架构
+        </div>
+        <div class="topic">
+          <div class="topic-title">光网络</div>
+          <ul class="topic-points">
+            <li>ROADM、SDON（可编程光层，实现虚拟化，不替代SDN）</li>
+            <li>OTDR/时域反射计：线缆物理故障定位</li>
+            <li>PON技术：GPON上行TDMA，上行波长1310nm；EPON UNI端口VLAN配置</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <div class="topic-title">5G/6G</div>
+          <ul class="topic-points">
+            <li>5G接入网：CU/DU逻辑网元，区别于4G</li>
+            <li>6G空天地一体化：地面基站、高空平台、卫星网络集成</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <div class="topic-title">数据中心架构</div>
+          <ul class="topic-points">
+            <li>TOR架构：高扩展性</li>
+            <li>交换机配置：MSTP、端口镜像、环路检测命令</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="chapter">
+        <div class="chapter-title">
+          <span class="icon">💻</span> 3. 操作系统与并发控制
+        </div>
+        <div class="topic">
+          <div class="topic-title">并发与死锁</div>
+          <ul class="topic-points">
+            <li>信号量：并发访问核心机制</li>
+            <li>最易引发死锁场景：优先满足高优先级进程资源请求</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <div class="topic-title">内存管理</div>
+          <ul class="topic-points">
+            <li>二级页表：缺页异常导致访问时延显著增加</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <div class="topic-title">RISC处理器</div>
+          <ul class="topic-points">
+            <li>流水线阻塞：分支预测错误最严重</li>
+            <li>编译器优化：常量传播可能引发程序错误</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 三、低频但必考点 -->
+    <div class="card">
+      <div class="section-title">
+        <span>📚</span> 三、低频但必考点（占比10%-15%，偶考但不丢分）
+        <span class="tag tag-low">了解</span>
+      </div>
+
+      <div class="chapter">
+        <div class="chapter-title">
+          <span class="icon">📋</span> 1. 网络规划与项目管理
+        </div>
+        <div class="topic">
+          <div class="topic-title">需求分析</div>
+          <ul class="topic-points">
+            <li>核心工作：性能、流量分析，建网成本估算</li>
+            <li>范围蔓延原因：需求不明确</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <div class="topic-title">风险识别</div>
+          <ul class="topic-points">
+            <li>风险矩阵：计划阶段工具</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <div class="topic-title">标准规范</div>
+          <ul class="topic-points">
+            <li>GB/T开头为推荐性国家标准</li>
+            <li>IEEE 802系列、IPSec等协议标准</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="chapter">
+        <div class="chapter-title">
+          <span class="icon">🔢</span> 2. 数学与计算
+        </div>
+        <div class="topic">
+          <div class="topic-title">排列组合与图论</div>
+          <ul class="topic-points">
+            <li>任务选派：含约束条件（如部分设备不支持某任务）</li>
+            <li>无向连通图、最小生成树：Kruskal算法适用场景</li>
+            <li>最大连续子数组和：动态规划，仅需考虑当前元素与前一状态</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="chapter">
+        <div class="chapter-title">
+          <span class="icon">⚖️</span> 3. 法律法规与前沿技术
+        </div>
+        <div class="topic">
+          <div class="topic-title">法律法规</div>
+          <ul class="topic-points">
+            <li>违法信息处置：国家互联网信息部门</li>
+          </ul>
+        </div>
+        <div class="topic">
+          <div class="topic-title">前沿技术</div>
+          <ul class="topic-points">
+            <li>Ad Hoc网络：不适用域间路由协议</li>
+            <li>Wi-Fi演进：核心特性差异</li>
+            <li>空天地一体化：6G核心</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 四、真题易错点汇总 -->
+    <div class="card">
+      <div class="section-title">
+        <span>⚠️</span> 四、真题易错点汇总（高频丢分点）
+        <span class="tag tag-error">易错</span>
+      </div>
+
+      <div class="error-list">
+        <div class="error-item">
+          <span class="error-icon">❗</span>
+          <span><b>OSPF邻居建立</b>：Router ID无需一致，Area ID、掩码必须一致</span>
+        </div>
+        <div class="error-item">
+          <span class="error-icon">❗</span>
+          <span><b>IPv6链路本地地址</b>：FE80::/10不可路由，路由器接收后直接丢弃</span>
+        </div>
+        <div class="error-item">
+          <span class="error-icon">❗</span>
+          <span><b>MPLS转发</b>：分组经过MPLS VPN时，无需每一跳分析IP报文头</span>
+        </div>
+        <div class="error-item">
+          <span class="error-icon">❗</span>
+          <span><b>RAID5/6</b>：RAID6安全性更高，但写入效率、磁盘利用率更低</span>
+        </div>
+        <div class="error-item">
+          <span class="error-icon">❗</span>
+          <span><b>FIN扫描</b>：开放端口无响应，关闭端口回复RST，与普通扫描区分</span>
+        </div>
+        <div class="error-item">
+          <span class="error-icon">❗</span>
+          <span><b>TCP序号</b>：无重传时，应用层字节数=终止序号-初始序号</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>📅 结合2021-2024年真题整理 | 距离考试还有 <span id="daysLeft" style="font-weight: bold; color: var(--primary);">--</span> 天</p>
+      <div class="version-info">
+        <p>v1.0.1 | 2026-05-31</p>
+        <p class="changelog">新增：考试大纲页面、每日一题独立页面</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const examDate = new Date('2026-11-14');
+    const daysLeft = Math.ceil((examDate - new Date()) / (1000 * 60 * 60 * 24));
+    document.getElementById('daysLeft').textContent = daysLeft;
+  </script>
+</body>
+</html>
