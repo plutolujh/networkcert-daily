@@ -15,10 +15,5 @@
   ],
   "triggers": {
     "crons": ["0 4,16 * * *"]
-  },
-  "secrets": [
-    {
-      "name": "CLAUDE_API_KEY"
-    }
-  ]
+  }
 }
