@@ -274,6 +274,15 @@
         flex-direction: column;
       }
     }
+    .save-success {
+      color: var(--success);
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+    .save-success.show {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -629,6 +638,7 @@
             <div class="result-answer">参考答案：</div>
             <div class="result-explanation"></div>
           </div>
+          <div class="save-success" id="saveSuccess">✓ 答案已保存</div>
         </div>
       `;
 
@@ -646,7 +656,33 @@
       const questions = caseData[currentYear];
       const q = questions[currentQuestionIndex];
       const input = document.getElementById('answerInput');
-      userAnswers[q.id] = input.value;
+      const answerText = input.value;
+      userAnswers[q.id] = answerText;
+
+      // 保存到数据库
+      fetch(`${API_BASE}/case/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question_id: q.id,
+          year: parseInt(currentYear),
+          sub_question: '全部',
+          user_answer: answerText
+        })
+      }).then(res => res.json())
+        .then(data => {
+          const saveSuccess = document.getElementById('saveSuccess');
+          if (data.status === 'saved') {
+            saveSuccess.textContent = '✓ 答案已保存到数据库';
+          } else {
+            saveSuccess.textContent = '✓ 答案已保存';
+          }
+          saveSuccess.classList.add('show');
+          setTimeout(() => saveSuccess.classList.remove('show'), 3000);
+        })
+        .catch(err => {
+          console.error('保存失败:', err);
+        });
 
       const resultSection = document.getElementById('resultSection');
       resultSection.classList.add('show');
