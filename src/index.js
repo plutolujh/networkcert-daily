@@ -206,6 +206,182 @@ export default {
         });
       }
 
+      // ===== 笔记API =====
+
+      // 保存笔记
+      if (path === '/api/note' && request.method === 'POST') {
+        const body = await request.json();
+        const { question_id, note_type, note_content } = body;
+
+        if (!question_id || !note_type) {
+          return new Response(JSON.stringify({ error: '缺少必要参数' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        // 检查题目是否存在
+        const question = await db.prepare('SELECT id FROM questions WHERE id = ?').bind(question_id).first();
+        if (!question) {
+          return new Response(JSON.stringify({ error: '题目不存在' }), {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        // 更新或插入笔记
+        await db.prepare(`
+          INSERT INTO question_notes (question_id, note_type, note_content, updated_at)
+          VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+        `).bind(question_id, note_type, note_content || '').run();
+
+        return new Response(JSON.stringify({ status: 'saved' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // 获取题目的笔记
+      if (path.startsWith('/api/note/') && request.method === 'GET') {
+        const noteId = path.split('/')[3];
+        if (!noteId) {
+          return new Response(JSON.stringify({ error: '缺少笔记ID' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        const note = await db.prepare('SELECT * FROM question_notes WHERE id = ?').bind(noteId).first();
+        if (!note) {
+          return new Response(JSON.stringify({ error: '笔记不存在' }), {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        return new Response(JSON.stringify(note), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // 获取题目的所有笔记
+      if (path === '/api/notes' && request.method === 'GET') {
+        const questionId = url.searchParams.get('question_id');
+        let query = 'SELECT * FROM question_notes';
+        let bindings = [];
+        if (questionId) {
+          query += ' WHERE question_id = ?';
+          bindings.push(questionId);
+        }
+        query += ' ORDER BY created_at DESC';
+        const { results } = await db.prepare(query).bind(...bindings).all();
+
+        return new Response(JSON.stringify(results), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // 获取今日扩展资料
+      if (path === '/api/extensions/today') {
+        const today = new Date().toISOString().split('T')[0];
+        const ext = await db.prepare('SELECT * FROM daily_extensions WHERE date = ?').bind(today).first();
+
+        if (!ext) {
+          return new Response(JSON.stringify({ error: '今日暂无扩展资料' }), {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        return new Response(JSON.stringify(ext), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // 生成扩展资料
+      if (path === '/api/extensions/generate' && request.method === 'POST') {
+        const today = new Date().toISOString().split('T')[0];
+
+        // 获取过去24小时内标记为需要扩展的笔记
+        const { results: notes } = await db.prepare(`
+          SELECT n.*, q.knowledge_point, q.content as question_content, q.explanation
+          FROM question_notes n
+          JOIN questions q ON n.question_id = q.id
+          WHERE n.note_type IN ('confused', 'need_extended')
+            AND n.created_at >= datetime('now', '-1 day')
+          ORDER BY n.created_at DESC
+        `).all();
+
+        if (notes.length === 0) {
+          return new Response(JSON.stringify({ error: '过去24小时没有需要扩展的笔记' }), {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        // 按知识点分组生成扩展资料
+        const knowledgeGroups = {};
+        for (const note of notes) {
+          const kp = note.knowledge_point || '其他';
+          if (!knowledgeGroups[kp]) {
+            knowledgeGroups[kp] = [];
+          }
+          knowledgeGroups[kp].push(note);
+        }
+
+        // 生成扩展资料内容
+        const extensionContent = {
+          generatedAt: new Date().toISOString(),
+          sourceCount: notes.length,
+          items: []
+        };
+
+        for (const [kp, kpNotes] of Object.entries(knowledgeGroups)) {
+          const item = {
+            knowledgePoint: kp,
+            noteCount: kpNotes.length,
+            corePoints: [],
+            memoryTips: [],
+            commonMistakes: [],
+            relatedQuestions: []
+          };
+
+          for (const note of kpNotes) {
+            if (note.note_content) {
+              item.corePoints.push(note.note_content);
+            }
+            if (note.explanation) {
+              item.memoryTips.push(note.explanation);
+            }
+            item.relatedQuestions.push({
+              id: note.question_id,
+              content: note.question_content?.substring(0, 100) + '...'
+            });
+          }
+
+          // 添加核心知识点扩展
+          item.corePoints.push(`【扩展】${kp} 是网络规划设计师考试的核心考点，建议深入理解其原理和应用场景。`);
+
+          extensionContent.items.push(item);
+        }
+
+        // 保存到数据库
+        const contentJson = JSON.stringify(extensionContent);
+        const noteIds = notes.map(n => n.id).join(',');
+
+        await db.prepare(`
+          INSERT OR REPLACE INTO daily_extensions (date, content, source_notes)
+          VALUES (?, ?, ?)
+        `).bind(today, contentJson, noteIds).run();
+
+        return new Response(JSON.stringify({
+          status: 'generated',
+          date: today,
+          content: extensionContent
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
       // ===== 原有API保持兼容 =====
 
       // 获取每日内容

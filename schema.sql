@@ -88,7 +88,32 @@ CREATE TABLE IF NOT EXISTS wrong_questions (
 );
 
 -- 创建索引加速查询
-CREATE INDEX IF NOT EXISTS idx_questions_category ON questions(category);
-CREATE INDEX IF NOT EXISTS idx_questions_tags ON questions(tags);
 CREATE INDEX IF NOT EXISTS idx_question_history_qid ON question_history(question_id);
 CREATE INDEX IF NOT EXISTS idx_wrong_questions_qid ON wrong_questions(question_id);
+
+-- ===== 题目笔记表 =====
+CREATE TABLE IF NOT EXISTS question_notes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  question_id INTEGER NOT NULL,
+  note_type TEXT NOT NULL, -- confused/need_extended/mastered/custom
+  note_content TEXT, -- 用户输入的具体内容
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  is_processed INTEGER DEFAULT 0,
+  FOREIGN KEY (question_id) REFERENCES questions(id)
+);
+
+-- ===== 每日扩展资料表 =====
+CREATE TABLE IF NOT EXISTS daily_extensions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  date TEXT NOT NULL UNIQUE, -- 日期 YYYY-MM-DD
+  content TEXT NOT NULL,                   -- 生成的扩展资料 JSON
+  source_notes TEXT,                       -- 来源的笔记ID列表，逗号分隔
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 创建笔记相关索引
+CREATE INDEX IF NOT EXISTS idx_notes_question ON question_notes(question_id);
+CREATE INDEX IF NOT EXISTS idx_notes_type ON question_notes(note_type);
+CREATE INDEX IF NOT EXISTS idx_notes_processed ON question_notes(is_processed);
+CREATE INDEX IF NOT EXISTS idx_extensions_date ON daily_extensions(date);
