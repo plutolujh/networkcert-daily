@@ -128,3 +128,48 @@ CREATE INDEX IF NOT EXISTS idx_notes_question ON question_notes(question_id);
 CREATE INDEX IF NOT EXISTS idx_notes_type ON question_notes(note_type);
 CREATE INDEX IF NOT EXISTS idx_notes_processed ON question_notes(is_processed);
 CREATE INDEX IF NOT EXISTS idx_extensions_date ON daily_extensions(date);
+
+-- ===== 案例分析题库表 =====
+
+-- 案例分析大题表
+CREATE TABLE IF NOT EXISTS case_questions (
+  id TEXT PRIMARY KEY,                  -- 主键如 'case_2024_1'
+  year INTEGER NOT NULL,                 -- 年份 2024
+  num TEXT NOT NULL,                     -- 题号如 '第一题'
+  title TEXT NOT NULL,                   -- 标题
+  tags TEXT,                             -- 标签，逗号分隔
+  content TEXT NOT NULL,                 -- 题目场景描述
+  explanation TEXT,                      -- 题目知识点说明
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 案例分析子问题表（每个大题4个小问）
+CREATE TABLE IF NOT EXISTS case_sub_questions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  question_id TEXT NOT NULL,             -- 外键关联 case_questions.id
+  sub_num INTEGER NOT NULL,              -- 子问题序号 1-4
+  question TEXT NOT NULL,                -- 子问题描述
+  keywords TEXT NOT NULL,                -- 批改关键词，逗号分隔
+  required_count INTEGER DEFAULT 4,      -- 通过所需的关键词数量
+  standard_answer TEXT NOT NULL,         -- 标准答案
+  grading_tips TEXT,                     -- 批改建议/点评
+  FOREIGN KEY (question_id) REFERENCES case_questions(id)
+);
+
+-- 案例分析用户答题记录表
+CREATE TABLE IF NOT EXISTS case_user_answers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  question_id TEXT NOT NULL,             -- 题目ID
+  sub_num INTEGER NOT NULL,              -- 子问题序号
+  user_answer TEXT NOT NULL,             -- 用户答案
+  score INTEGER,                         -- 得分
+  grading_result TEXT,                   -- 批改结果 JSON（匹配/缺少关键词等）
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(question_id, sub_num)
+);
+
+-- 创建案例分析相关索引
+CREATE INDEX IF NOT EXISTS idx_case_questions_year ON case_questions(year);
+CREATE INDEX IF NOT EXISTS idx_case_sub_q_qid ON case_sub_questions(question_id);
+CREATE INDEX IF NOT EXISTS idx_case_user_qid ON case_user_answers(question_id);

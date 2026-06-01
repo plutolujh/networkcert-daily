@@ -298,15 +298,60 @@ export default {
         });
       }
 
-      // 案例分析答题保存
+      // ===== 案例分析API =====
+
+      // 获取案例分析题目列表（按年份）
+      if (path === '/api/case/questions' && request.method === 'GET') {
+        const year = url.searchParams.get('year');
+        let query = 'SELECT * FROM case_questions';
+        let bindings = [];
+        if (year) {
+          query += ' WHERE year = ?';
+          bindings.push(parseInt(year));
+        }
+        query += ' ORDER BY id';
+        const { results } = await db.prepare(query).bind(...bindings).all();
+
+        // 获取每个大题的子问题
+        for (const q of results) {
+          const subs = await db.prepare('SELECT * FROM case_sub_questions WHERE question_id = ? ORDER BY sub_num').bind(q.id).all();
+          q.subQuestions = subs;
+        }
+
+        return new Response(JSON.stringify(results), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // 获取单个案例分析题目详情
+      if (path.startsWith('/api/case/question/') && request.method === 'GET') {
+        const questionId = path.split('/').pop();
+        const question = await db.prepare('SELECT * FROM case_questions WHERE id = ?').bind(questionId).first();
+
+        if (!question) {
+          return new Response(JSON.stringify({ error: '题目不存在' }), {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        const subs = await db.prepare('SELECT * FROM case_sub_questions WHERE question_id = ? ORDER BY sub_num').bind(questionId).all();
+        question.subQuestions = subs;
+
+        return new Response(JSON.stringify(question), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // 提交案例分析答案（带批改）
       if (path === '/api/case/submit' && request.method === 'POST') {
         const body = await request.json();
-        const { question_id, year, sub_question, user_answer } = body;
+        const { question_id, sub_num, user_answer, grade_result } = body;
 
         await db.prepare(`
-          INSERT OR REPLACE INTO case_answers (question_id, year, sub_question, user_answer, submitted_at)
-          VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-        `).bind(question_id, year, sub_question, user_answer).run();
+          INSERT OR REPLACE INTO case_user_answers (question_id, sub_num, user_answer, score, grading_result, updated_at)
+          VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        `).bind(question_id, sub_num, user_answer, grade_result?.score || null, JSON.stringify(grade_result || {})).run();
 
         return new Response(JSON.stringify({ status: 'saved' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -315,9 +360,17 @@ export default {
 
       // 获取案例分析答题历史
       if (path === '/api/case/history') {
-        const question_id = url.searchParams.get('question_id');
-        if (question_id) {
-          const result = await db.prepare('SELECT * FROM case_answers WHERE question_id = ?').bind(question_id).all();
+        const questionId = url.searchParams.get('question_id');
+        if (questionId) {
+          const result = await db.prepare('SELECT * FROM case_user_answers WHERE question_id = ? ORDER BY sub_num').bind(questionId).all();
+          // 解析 grading_result JSON
+          for (const r of result) {
+            if (r.grading_result && typeof r.grading_result === 'string') {
+              try {
+                r.grading_result = JSON.parse(r.grading_result);
+              } catch (e) {}
+            }
+          }
           return new Response(JSON.stringify(result), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
