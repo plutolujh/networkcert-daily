@@ -219,6 +219,78 @@
       line-height: 1.7;
     }
 
+    /* 批改结果样式 */
+    .grading-section {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 2px solid var(--border);
+    }
+    .grading-section h3 {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+    .grading-item {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      border-left: 3px solid var(--border);
+    }
+    .grading-item.correct {
+      border-left-color: var(--success);
+      background: #dcfce7;
+    }
+    .grading-item.partial {
+      border-left-color: var(--warning);
+      background: #fef3c7;
+    }
+    .grading-item.wrong {
+      border-left-color: var(--error);
+      background: #fef2f2;
+    }
+    .grading-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .grading-title {
+      font-weight: 600;
+      color: var(--text);
+    }
+    .grading-status {
+      font-size: 0.85rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    .grading-status.correct { background: var(--success); color: white; }
+    .grading-status.partial { background: var(--warning); color: white; }
+    .grading-status.wrong { background: var(--error); color: white; }
+    .grading-detail {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .grading-detail li {
+      margin: 0.25rem 0;
+    }
+    .key-check { color: var(--success); margin-right: 0.3rem; }
+    .key-miss { color: var(--error); margin-right: 0.3rem; }
+    .key-partial { color: var(--warning); margin-right: 0.3rem; }
+
+    .sub-answers {
+      margin: 1rem 0;
+    }
+    .sub-answer-item {
+      padding: 0.75rem;
+      background: #f1f5f9;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
     /* 导航按钮 */
     .nav-buttons {
       display: flex;
@@ -365,87 +437,45 @@
             { q: '问题3', desc: '请给出AP license授权数量的计算依据，并说明信道配置原则' },
             { q: '问题4', desc: '请给出portal认证流程及无线方式的优缺点' }
           ],
-          answer: `【问题1参考答案】
-
-一、SDN控制器集中控制方式特点：
-1. 集中管控：无线控制器统一管理所有AP，实现策略一致性
-2. 开放接口：北向开放API便于业务编排，南向支持OpenFlow等协议
-3. 灵活性高：业务策略可动态调整，网络编程能力强
-4. 可视化：全局网络视图，便于监控和故障定位
-
-二、上行业务流量计算：
-1. 总用户数：3000+2500+2000=7500人
-2. 同时在线率按30%计算：7500×30%=2250人
-3. 每用户带宽需求：按2Mbps计算
-4. 上行总流量：2250×2Mbps=4500Mbps≈4.5Gbps
-5. 建议出口带宽≥6Gbps（含冗余）
-
-三、信道配置原则：
-1. 2.4GHz使用1、6、11信道（三者互不干扰）
-2. 5GHz采用36、40、44、48、149、153、157、161信道
-3. 相邻AP交叉复用信道，避免同频干扰
-
-【问题2参考答案】
-
-一、轮询算法（Round Robin）：
-- 原理：按顺序将请求分配到各服务器
-- 优点：实现简单，公平性好
-- 缺点：不考虑服务器实际负载差异
-
-二、最小连接数算法（Least Connections）：
-- 原理：分配给当前连接数最少的服务器
-- 优点：动态感知服务器负载状态
-- 缺点：需要实时维护连接统计数据
-
-三、源地址哈希算法（Source Hash）：
-- 原理：根据源IP计算哈希值分配服务器
-- 优点：实现会话保持
-- 缺点：负载可能不均匀
-
-四、加权轮询算法（Weighted Round Robin）：
-- 原理：按权重比例分配请求
-- 优点：可根据服务器性能差异分配
-- 缺点：权重固定，无法动态调整
-
-【问题3参考答案】
-
-一、AP License授权数量计算依据：
-1. AP License数 = 各校区AP数量之和
-2. 估算方式：每100名学生配置15-20个AP
-3. 校区1（3000人）：约450-600个AP
-4. 校区2（2500人）：约375-500个AP
-5. 校区3（2000人）：约300-400个AP
-6. 总计：约1125-1500个AP
-
-二、信道配置原则：
-1. 室内AP覆盖半径20-30米
-2. 相邻AP信道间隔≥5（如CH1与CH6）
-3. 同一楼层相邻AP交叉使用1、6、11信道
-4. 室外AP采用扇区覆盖，信道间隔40MHz
-
-【问题4参考答案】
-
-一、Portal认证流程：
-1. 用户关联无线网络，触发DHCP获取IP地址
-2. 用户打开浏览器访问任意网站
-3. AC/无线控制器截获请求，重定向到Portal服务器
-4. 用户输入用户名密码
-5. Portal服务器向认证服务器验证用户凭据
-6. 认证成功返回授权信息，AC允许用户上网
-
-二、无线方式优缺点：
-
-优点：
-- 无需安装客户端，兼容性好
-- 便于营销推广（可推送广告）
-- 统一接入管理
-- 用户体验直观
-
-缺点：
-- 移动设备切换可能断开连接
-- 安全性相对较低
-- 并发量大时Portal服务器压力大
-- 依赖于浏览器兼容性`,
+          subAnswers: [
+            {
+              key: '问题1',
+              keywords: ['集中管控', '开放接口', '灵活性', '可视化', '7500', '30%', '2250', '2Mbps', '4.5Gbps', '6Gbps', '1 6 11', '36 40 44 48', '信道'],
+              requiredCount: 6,
+              answer: `一、SDN特点：集中管控、开放接口（北向API/南向OpenFlow）、灵活性高、可视化
+二、流量计算：总用户7500人，同时在线30%得2250人，每用户2Mbps，总流量4.5Gbps，建议出口≥6Gbps
+三、信道配置：2.4G用1/6/11信道，5G用36/40/44/48等信道，相邻AP交叉复用`
+            },
+            {
+              key: '问题2',
+              keywords: ['轮询', '最小连接', '源地址哈希', '加权', '会话保持', '负载'],
+              requiredCount: 4,
+              answer: `至少需提及两种算法，如：
+- 轮询(Round Robin)：简单公平，不考虑负载
+- 最小连接数：动态感知负载
+- 源地址哈希：会话保持
+- 加权轮询：按性能分配`
+            },
+            {
+              key: '问题3',
+              keywords: ['每100学生', '15-20', 'AP数量', '1125', '1500', '覆盖半径', '20-30', '信道间隔'],
+              requiredCount: 4,
+              answer: `一、AP License计算：每100学生配置15-20个AP
+  校区1(3000人)：450-600个AP
+  校区2(2500人)：375-500个AP
+  校区3(2000人)：300-400个AP
+  总计：1125-1500个AP
+二、信道配置：室内覆盖20-30米，相邻AP信道间隔≥5，同楼层交叉使用1/6/11`
+            },
+            {
+              key: '问题4',
+              keywords: ['DHCP', '重定向', 'Portal', '认证服务器', '无需客户端', '兼容性', '切换断开', '安全性'],
+              requiredCount: 5,
+              answer: `一、Portal流程：用户关联无线→DHCP获取IP→访问网站→AC截获重定向→输入用户名密码→认证服务器验证→授权上网
+二、无线优点：无需客户端/兼容性好、便于营销推广、统一管理、用户体验直观
+二、无线缺点：移动切换可能断开、安全性相对低、并发量大时压力大、依赖浏览器`
+            }
+          ],
           explanation: '本题涉及SDN无线网络组网、负载均衡算法、AP License计算、portal认证流程等知识点。'
         },
         {
@@ -1884,10 +1914,109 @@
           console.error('保存失败:', err);
         });
 
+      // 显示参考答案
       const resultSection = document.getElementById('resultSection');
       resultSection.classList.add('show');
-      resultSection.querySelector('.result-answer').textContent = '参考答案：' + q.answer;
-      resultSection.querySelector('.result-explanation').innerHTML = q.explanation;
+
+      // 生成参考答案文本
+      let answerText2 = '';
+      if (q.subAnswers) {
+        answerText2 = q.subAnswers.map(sa => `【${sa.key}】\n${sa.answer}`).join('\n\n');
+      } else {
+        answerText2 = q.answer || '暂无参考答案';
+      }
+      resultSection.querySelector('.result-answer').textContent = '参考答案：';
+      resultSection.querySelector('.result-explanation').innerHTML = '<pre style="white-space:pre-wrap;font-size:0.85rem;line-height:1.6;">' + answerText2.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
+
+      // 执行批改
+      showGradingResult(q, answerText);
+    }
+
+    // 批改函数
+    function gradeAnswer(userAnswer, subAnswer) {
+      if (!subAnswer || !subAnswer.keywords) {
+        return { status: 'unknown', matched: [], missing: [] };
+      }
+
+      const matched = [];
+      const missing = [];
+
+      for (const keyword of subAnswer.keywords) {
+        if (userAnswer.includes(keyword)) {
+          matched.push(keyword);
+        } else {
+          missing.push(keyword);
+        }
+      }
+
+      const score = matched.length;
+      const required = subAnswer.requiredCount || 4;
+
+      let status;
+      if (score >= required) {
+        status = score >= subAnswer.keywords.length * 0.7 ? 'correct' : 'partial';
+      } else if (score >= required * 0.5) {
+        status = 'partial';
+      } else {
+        status = 'wrong';
+      }
+
+      return { status, matched, missing, score, total: subAnswer.keywords.length };
+    }
+
+    // 显示批改结果
+    function showGradingResult(question, userAnswer) {
+      let gradingHTML = `
+        <div class="grading-section">
+          <h3>📋 批改结果</h3>
+      `;
+
+      if (question.subAnswers) {
+        for (const subAnswer of question.subAnswers) {
+          const result = gradeAnswer(userAnswer, subAnswer);
+
+          let statusLabel, statusClass;
+          if (result.status === 'correct') {
+            statusLabel = '✓ 正确';
+            statusClass = 'correct';
+          } else if (result.status === 'partial') {
+            statusLabel = '⚠ 部分正确';
+            statusClass = 'partial';
+          } else {
+            statusLabel = '✗ 错误';
+            statusClass = 'wrong';
+          }
+
+          let detailHTML = '';
+          if (result.matched.length > 0) {
+            detailHTML += '<div style="margin-bottom:0.5rem;"><span class="key-check">✓</span> 已提及：' + result.matched.slice(0, 5).join('、') + (result.matched.length > 5 ? '...' : '') + '</div>';
+          }
+          if (result.missing.length > 0) {
+            detailHTML += '<div><span class="key-miss">✗</span> 缺少：' + result.missing.slice(0, 5).join('、') + (result.missing.length > 5 ? '...' : '') + '</div>';
+          }
+
+          gradingHTML += `
+            <div class="grading-item ${statusClass}">
+              <div class="grading-header">
+                <span class="grading-title">${subAnswer.key}</span>
+                <span class="grading-status ${statusClass}">${statusLabel}</span>
+              </div>
+              <div class="grading-detail">
+                ${detailHTML}
+                <div style="margin-top:0.5rem;font-size:0.8rem;color:#64748b;">得分：${result.score}/${result.total}（需至少${subAnswer.requiredCount}个关键词）</div>
+              </div>
+            </div>
+          `;
+        }
+      } else {
+        gradingHTML += '<div style="color:#64748b;">本题暂无批改数据</div>';
+      }
+
+      gradingHTML += '</div>';
+
+      // 插入到结果区域
+      const resultSection = document.getElementById('resultSection');
+      resultSection.insertAdjacentHTML('beforeend', gradingHTML);
     }
 
     // 初始化

@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS user_settings (
 );
 
 -- 初始化用户设置
-INSERT INTO user_settings (id, exam_date, daily_goal, study_mode) VALUES (1, '2026-11-14', 3, 'normal');
+INSERT OR IGNORE INTO user_settings (id, exam_date, daily_goal, study_mode) VALUES (1, '2026-11-14', 3, 'normal');
 
 -- ===== 题库表（新增） =====
 
