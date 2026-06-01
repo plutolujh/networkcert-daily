@@ -18,6 +18,9 @@
       --warning: #f59e0b;
       --error: #dc2626;
     }
+    .grading-status.correct { background: var(--success); color: white; }
+    .grading-status.partial { background: var(--warning); color: white; }
+    .grading-status.wrong { background: var(--error); color: white; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -355,6 +358,12 @@
     .save-success.show {
       display: block;
     }
+    .grading-container {
+      margin-top: 1rem;
+    }
+    .key-check { color: var(--success); margin-right: 0.3rem; }
+    .key-miss { color: var(--error); margin-right: 0.3rem; }
+    .key-partial { color: var(--warning); margin-right: 0.3rem; }
   </style>
 </head>
 <body>
@@ -1868,6 +1877,7 @@
             <div class="result-answer">参考答案：</div>
             <div class="result-explanation"></div>
           </div>
+          <div class="grading-container" id="gradingContainer"></div>
           <div class="save-success" id="saveSuccess">✓ 答案已保存</div>
         </div>
       `;
@@ -2014,9 +2024,9 @@
 
       gradingHTML += '</div>';
 
-      // 插入到结果区域
-      const resultSection = document.getElementById('resultSection');
-      resultSection.insertAdjacentHTML('beforeend', gradingHTML);
+      // 插入到批改容器
+      const gradingContainer = document.getElementById('gradingContainer');
+      gradingContainer.innerHTML = gradingHTML;
     }
 
     // 初始化
