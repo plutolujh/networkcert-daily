@@ -535,11 +535,15 @@ export default {
             corePoints: [],
             memoryTips: [],
             commonMistakes: [],
-            relatedQuestions: []
+            relatedQuestions: [],
+            fromKnowledgeBase: false
           };
 
+          // 检查知识库是否已有该知识点
+          const existingKb = await db.prepare('SELECT * FROM knowledge_base WHERE knowledge_point = ?').bind(kp).first();
+
           for (const note of kpNotes) {
-            if (note.note_content) {
+            if (note.note_content && note.note_content !== '需要解释') {
               item.corePoints.push(note.note_content);
             }
             if (note.explanation) {
@@ -554,10 +558,28 @@ export default {
           // 添加核心知识点扩展
           item.corePoints.push(`【扩展】${kp} 是网络规划设计师考试的核心考点，建议深入理解其原理和应用场景。`);
 
+          // 保存到知识库
+          const contentStr = item.corePoints.join('\n\n');
+          if (existingKb) {
+            // 已存在：更新内容 + 增加引用次数
+            await db.prepare(`
+              UPDATE knowledge_base
+              SET content = ?, source_count = source_count + 1, last_updated = CURRENT_TIMESTAMP
+              WHERE knowledge_point = ?
+            `).bind(contentStr, kp).run();
+            item.fromKnowledgeBase = false; // 本次生成覆盖
+          } else {
+            // 新增
+            await db.prepare(`
+              INSERT INTO knowledge_base (knowledge_point, content, source_count)
+              VALUES (?, ?, 1)
+            `).bind(kp, contentStr).run();
+          }
+
           extensionContent.items.push(item);
         }
 
-        // 保存到数据库
+        // 保存到数据库（每日扩展资料表）
         const contentJson = JSON.stringify(extensionContent);
         const noteIds = notes.map(n => n.id).join(',');
 
@@ -566,10 +588,55 @@ export default {
           VALUES (?, ?, ?)
         `).bind(today, contentJson, noteIds).run();
 
+        // 清理7天前的每日扩展资料（保留知识库）
+        await db.prepare(`
+          DELETE FROM daily_extensions WHERE date < datetime('now', '-7 days')
+        `).run();
+
         return new Response(JSON.stringify({
           status: 'generated',
           date: today,
           content: extensionContent
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // 获取知识库内容（从数据库积累的扩展资料）
+      if (path === '/api/knowledge/base' && request.method === 'GET') {
+        const search = url.searchParams.get('search') || '';
+        const page = parseInt(url.searchParams.get('page') || '1');
+        const limit = Math.min(parseInt(url.searchParams.get('limit') || '20'), 50);
+        const offset = (page - 1) * limit;
+
+        let query = 'SELECT * FROM knowledge_base';
+        let countQuery = 'SELECT COUNT(*) as total FROM knowledge_base';
+        const params = [];
+        const countParams = [];
+
+        if (search) {
+          query += ' WHERE knowledge_point LIKE ?';
+          countQuery += ' WHERE knowledge_point LIKE ?';
+          params.push(`%${search}%`);
+          countParams.push(`%${search}%`);
+        }
+
+        query += ' ORDER BY source_count DESC, last_updated DESC LIMIT ? OFFSET ?';
+
+        const countResult = await db.prepare(countQuery).bind(...countParams).first();
+        const rawItems = await db.prepare(query).bind(...params, limit, offset).all();
+        const items = Array.isArray(rawItems) ? rawItems : [];
+
+        return new Response(JSON.stringify({
+          total: countResult?.total || 0,
+          page,
+          limit,
+          items: items.map(i => ({
+            knowledgePoint: i.knowledge_point,
+            content: i.content,
+            sourceCount: i.source_count,
+            lastUpdated: i.last_updated
+          }))
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });

@@ -123,6 +123,20 @@ CREATE TABLE IF NOT EXISTS daily_extensions (
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ===== 知识库表 =====
+CREATE TABLE IF NOT EXISTS knowledge_base (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  knowledge_point TEXT UNIQUE NOT NULL,  -- 知识点名称
+  content TEXT NOT NULL,                  -- 扩展内容
+  source_count INTEGER DEFAULT 0,         -- 被引用次数
+  last_updated TEXT DEFAULT CURRENT_TIMESTAMP,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 创建知识库索引
+CREATE INDEX IF NOT EXISTS idx_kb_point ON knowledge_base(knowledge_point);
+CREATE INDEX IF NOT EXISTS idx_kb_source ON knowledge_base(source_count DESC);
+
 -- 创建笔记相关索引
 CREATE INDEX IF NOT EXISTS idx_notes_question ON question_notes(question_id);
 CREATE INDEX IF NOT EXISTS idx_notes_type ON question_notes(note_type);
