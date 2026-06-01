@@ -431,21 +431,7 @@
   <script>
     const API_BASE = 'https://networkcert-daily.plutolu.workers.dev/api';
 
-    // 案例分析数据（2024年真题）
-    const caseData = {
-      '2024': [
-        {
-          id: 'case_2024_1',
-          num: '第一题',
-          title: '网络系统规划设计与优化',
-          tags: ['SDN', 'WLAN', '负载均衡'],
-          content: '某高校因业务发展需要，拟建设覆盖三个校区的IPv6校园无线网络。三个校区在同一城市，假设校区之间光纤直连，传输链路带宽为10Gbps。各校区的学生人数约为3000、2500、2000人。无线控制器旁挂核心交换机，认证方式为portal认证。',
-          subQuestions: [
-            { q: '问题1', desc: '该网络采用SDN控制器集中控制方式，请分析该组网方案的特点，计算上行业务流量并给出信道配置原则' },
-            { q: '问题2', desc: '出口负载均衡是本方案的关键技术，请给出两种负载均衡算法及其优缺点' },
-            { q: '问题3', desc: '请给出AP license授权数量的计算依据，并说明信道配置原则' },
-            { q: '问题4', desc: '请给出portal认证流程及无线方式的优缺点' }
-          ],
+    let currentYear = '2024';
           subAnswers: [
             {
               key: '问题1',
@@ -1701,12 +1687,36 @@ SAN特点：存储区域网络，通过FC/iSCSI连接，高性能高可靠
     let currentYear = '2024';
     let currentQuestionIndex = 0;
     let userAnswers = {};
+    let caseQuestions = [];  // 从API加载的题目数据
+    let isLoading = false;
+
+    // 加载题目数据从API
+    async function loadQuestions() {
+      try {
+        isLoading = true;
+        const res = await fetch(`${API_BASE}/case/questions?year=${currentYear}`);
+        const data = await res.json();
+        caseQuestions = data;
+        currentQuestionIndex = 0;
+        renderQuestionList();
+      } catch (err) {
+        console.error('加载题目失败:', err);
+        document.getElementById('questionList').innerHTML = '<div class="error">加载题目失败，请刷新重试</div>';
+      } finally {
+        isLoading = false;
+      }
+    }
 
     function renderQuestionList() {
       const container = document.getElementById('questionList');
-      const questions = caseData[currentYear] || [];
 
-      if (questions.length === 0) {
+      if (isLoading) {
+        container.innerHTML = '<div class="loading">加载中...</div>';
+        document.getElementById('navButtons').style.display = 'none';
+        return;
+      }
+
+      if (caseQuestions.length === 0) {
         container.innerHTML = `
           <div class="empty-state">
             <div class="icon">📚</div>
@@ -1717,14 +1727,15 @@ SAN特点：存储区域网络，通过FC/iSCSI连接，高性能高可靠
         return;
       }
 
-      const q = questions[currentQuestionIndex];
+      const q = caseQuestions[currentQuestionIndex];
+      const tags = q.tags ? q.tags.split(',') : [];
 
       container.innerHTML = `
         <div class="question-card">
           <div class="question-header">
             <span class="question-num">${q.num}：${q.title}</span>
             <div class="question-tags">
-              ${q.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+              ${tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
             </div>
           </div>
 
@@ -1733,17 +1744,17 @@ SAN特点：存储区域网络，通过FC/iSCSI连接，高性能高可靠
           </div>
 
           <div class="sub-questions">
-            ${q.subQuestions.map((sq, idx) => `
+            ${q.subQuestions.results.map((sq, idx) => `
               <div class="sub-q">
-                <div class="sub-q-title">${sq.q}（${(idx + 1)}/${q.subQuestions.length}）</div>
-                <div class="sub-q-content">${sq.desc}</div>
+                <div class="sub-q-title">问题${sq.sub_num}（${(idx + 1)}/${q.subQuestions.results.length}）</div>
+                <div class="sub-q-content">${sq.question}</div>
               </div>
             `).join('')}
           </div>
 
           <div class="answer-section">
             <h3>📝 我的答案</h3>
-            <textarea class="answer-textarea" id="answerInput" placeholder="请输入您的答案...">${userAnswers[q.id] || ''}</textarea>
+            <textarea class="answer-textarea" id="answerInput" placeholder="请输入您的答案..."></textarea>
             <button class="btn btn-primary" onclick="checkAnswer()">提交答案</button>
           </div>
 
@@ -1761,148 +1772,113 @@ SAN特点：存储区域网络，通过FC/iSCSI连接，高性能高可靠
     }
 
     function updateNavButtons() {
-      const questions = caseData[currentYear] || [];
       document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
-      document.getElementById('nextBtn').disabled = currentQuestionIndex >= questions.length - 1;
+      document.getElementById('nextBtn').disabled = currentQuestionIndex >= caseQuestions.length - 1;
     }
 
-    function checkAnswer() {
-      const questions = caseData[currentYear];
-      const q = questions[currentQuestionIndex];
+    async function checkAnswer() {
+      const q = caseQuestions[currentQuestionIndex];
       const input = document.getElementById('answerInput');
       const answerText = input.value;
       userAnswers[q.id] = answerText;
 
-      // 保存到数据库
-      fetch(`${API_BASE}/case/submit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question_id: q.id,
-          year: parseInt(currentYear),
-          sub_question: '全部',
-          user_answer: answerText
-        })
-      }).then(res => res.json())
-        .then(data => {
-          const saveSuccess = document.getElementById('saveSuccess');
-          if (data.status === 'saved') {
-            saveSuccess.textContent = '✓ 答案已保存到数据库';
-          } else {
-            saveSuccess.textContent = '✓ 答案已保存';
-          }
-          saveSuccess.classList.add('show');
-          setTimeout(() => saveSuccess.classList.remove('show'), 3000);
-        })
-        .catch(err => {
-          console.error('保存失败:', err);
-        });
+      // 清空之前的结果
+      document.getElementById('resultSection').classList.remove('show');
+      document.getElementById('resultSection').querySelector('.result-answer').textContent = '参考答案：';
+      document.getElementById('resultSection').querySelector('.result-explanation').innerHTML = '';
+      document.getElementById('gradingContainer').innerHTML = '';
 
-      // 显示参考答案
+      // 显示参考答案和批改结果
+      let answerHTML = '';
+      let gradingHTML = `<div class="grading-section"><h3>📋 批改结果</h3>`;
+
+      let totalScore = 0;
+      let maxScore = 0;
+
+      for (const sq of q.subQuestions.results) {
+        const keywords = sq.keywords.split(',');
+        const matched = [];
+        const missing = [];
+
+        for (const kw of keywords) {
+          if (answerText.includes(kw)) {
+            matched.push(kw);
+          } else {
+            missing.push(kw);
+          }
+        }
+
+        const score = matched.length;
+        const required = sq.required_count || 4;
+        maxScore += keywords.length;
+        totalScore += score;
+
+        let status, statusLabel;
+        if (score >= required) {
+          status = score >= keywords.length * 0.7 ? 'correct' : 'partial';
+          statusLabel = score >= keywords.length * 0.7 ? '✓ 正确' : '⚠ 部分正确';
+        } else if (score >= required * 0.5) {
+          status = 'partial';
+          statusLabel = '⚠ 部分正确';
+        } else {
+          status = 'wrong';
+          statusLabel = '✗ 错误';
+        }
+
+        // 添加参考答案
+        answerHTML += `<div class="sub-answer-item"><strong>问题${sq.sub_num}：</strong><pre style="white-space:pre-wrap;margin-top:0.5rem;">${sq.standard_answer}</pre></div>`;
+
+        // 添加批改结果
+        let detailHTML = '';
+        if (matched.length > 0) {
+          detailHTML += `<div style="margin-bottom:0.3rem;"><span class="key-check">✓</span> 已提及：${matched.slice(0, 5).join('、')}${matched.length > 5 ? '...' : ''}</div>`;
+        }
+        if (missing.length > 0) {
+          detailHTML += `<div><span class="key-miss">✗</span> 缺少：${missing.slice(0, 5).join('、')}${missing.length > 5 ? '...' : ''}</div>`;
+        }
+
+        gradingHTML += `
+          <div class="grading-item ${status}">
+            <div class="grading-header">
+              <span class="grading-title">问题${sq.sub_num}</span>
+              <span class="grading-status ${status}">${statusLabel}</span>
+            </div>
+            <div class="grading-detail">
+              ${detailHTML}
+              <div style="margin-top:0.3rem;font-size:0.8rem;color:#64748b;">得分：${score}/${keywords.length}（需至少${required}个关键词）</div>
+            </div>
+          </div>
+        `;
+
+        // 保存到数据库
+        const gradeResult = { score, matched, missing, status, required };
+        await fetch(`${API_BASE}/case/submit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            question_id: q.id,
+            sub_num: sq.sub_num,
+            user_answer: answerText,
+            grade_result: gradeResult
+          })
+        });
+      }
+
+      gradingHTML += `</div>`;
+
+      // 显示结果
       const resultSection = document.getElementById('resultSection');
       resultSection.classList.add('show');
+      resultSection.querySelector('.result-answer').textContent = `参考答案：`;
+      resultSection.querySelector('.result-explanation').innerHTML = answerHTML;
+      document.getElementById('gradingContainer').innerHTML = gradingHTML;
 
-      // 生成参考答案文本
-      let answerText2 = '';
-      if (q.subAnswers) {
-        answerText2 = q.subAnswers.map(sa => `【${sa.key}】\n${sa.answer}`).join('\n\n');
-      } else {
-        answerText2 = q.answer || '暂无参考答案';
-      }
-      resultSection.querySelector('.result-answer').textContent = '参考答案：';
-      resultSection.querySelector('.result-explanation').innerHTML = '<pre style="white-space:pre-wrap;font-size:0.85rem;line-height:1.6;">' + answerText2.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
-
-      // 执行批改
-      showGradingResult(q, answerText);
+      // 显示保存成功
+      const saveSuccess = document.getElementById('saveSuccess');
+      saveSuccess.textContent = '✓ 答案已保存到数据库';
+      saveSuccess.classList.add('show');
+      setTimeout(() => saveSuccess.classList.remove('show'), 3000);
     }
-
-    // 批改函数
-    function gradeAnswer(userAnswer, subAnswer) {
-      if (!subAnswer || !subAnswer.keywords) {
-        return { status: 'unknown', matched: [], missing: [] };
-      }
-
-      const matched = [];
-      const missing = [];
-
-      for (const keyword of subAnswer.keywords) {
-        if (userAnswer.includes(keyword)) {
-          matched.push(keyword);
-        } else {
-          missing.push(keyword);
-        }
-      }
-
-      const score = matched.length;
-      const required = subAnswer.requiredCount || 4;
-
-      let status;
-      if (score >= required) {
-        status = score >= subAnswer.keywords.length * 0.7 ? 'correct' : 'partial';
-      } else if (score >= required * 0.5) {
-        status = 'partial';
-      } else {
-        status = 'wrong';
-      }
-
-      return { status, matched, missing, score, total: subAnswer.keywords.length };
-    }
-
-    // 显示批改结果
-    function showGradingResult(question, userAnswer) {
-      let gradingHTML = `
-        <div class="grading-section">
-          <h3>📋 批改结果</h3>
-      `;
-
-      if (question.subAnswers) {
-        for (const subAnswer of question.subAnswers) {
-          const result = gradeAnswer(userAnswer, subAnswer);
-
-          let statusLabel, statusClass;
-          if (result.status === 'correct') {
-            statusLabel = '✓ 正确';
-            statusClass = 'correct';
-          } else if (result.status === 'partial') {
-            statusLabel = '⚠ 部分正确';
-            statusClass = 'partial';
-          } else {
-            statusLabel = '✗ 错误';
-            statusClass = 'wrong';
-          }
-
-          let detailHTML = '';
-          if (result.matched.length > 0) {
-            detailHTML += '<div style="margin-bottom:0.5rem;"><span class="key-check">✓</span> 已提及：' + result.matched.slice(0, 5).join('、') + (result.matched.length > 5 ? '...' : '') + '</div>';
-          }
-          if (result.missing.length > 0) {
-            detailHTML += '<div><span class="key-miss">✗</span> 缺少：' + result.missing.slice(0, 5).join('、') + (result.missing.length > 5 ? '...' : '') + '</div>';
-          }
-
-          gradingHTML += `
-            <div class="grading-item ${statusClass}">
-              <div class="grading-header">
-                <span class="grading-title">${subAnswer.key}</span>
-                <span class="grading-status ${statusClass}">${statusLabel}</span>
-              </div>
-              <div class="grading-detail">
-                ${detailHTML}
-                <div style="margin-top:0.5rem;font-size:0.8rem;color:#64748b;">得分：${result.score}/${result.total}（需至少${subAnswer.requiredCount}个关键词）</div>
-              </div>
-            </div>
-          `;
-        }
-      } else {
-        gradingHTML += '<div style="color:#64748b;">本题暂无批改数据</div>';
-      }
-
-      gradingHTML += '</div>';
-
-      // 插入到批改容器
-      const gradingContainer = document.getElementById('gradingContainer');
-      gradingContainer.innerHTML = gradingHTML;
-    }
-
     // 初始化
     document.addEventListener('DOMContentLoaded', () => {
       // 年份切换
@@ -1911,9 +1887,7 @@ SAN特点：存储区域网络，通过FC/iSCSI连接，高性能高可靠
           document.querySelectorAll('.year-tab').forEach(t => t.classList.remove('active'));
           tab.classList.add('active');
           currentYear = tab.dataset.year;
-          currentQuestionIndex = 0;
-          userAnswers = {};
-          renderQuestionList();
+          loadQuestions();
         });
       });
 
@@ -1926,14 +1900,14 @@ SAN特点：存储区域网络，通过FC/iSCSI连接，高性能高可靠
       });
 
       document.getElementById('nextBtn').addEventListener('click', () => {
-        const questions = caseData[currentYear] || [];
-        if (currentQuestionIndex < questions.length - 1) {
+        if (currentQuestionIndex < caseQuestions.length - 1) {
           currentQuestionIndex++;
           renderQuestionList();
         }
       });
 
-      renderQuestionList();
+      // 初始加载题目
+      loadQuestions();
     });
   </script>
 </body>
